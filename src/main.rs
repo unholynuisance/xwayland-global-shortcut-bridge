@@ -1,13 +1,15 @@
 use std::str::FromStr as _;
 
+use tokio;
+use tokio_stream::StreamExt as _;
+
 use ashpd::{
     AppID,
     desktop::global_shortcuts::{GlobalShortcuts, NewShortcut},
     register_host_app,
 };
-use tokio;
 
-const APP_ID: &str = "org.nuisance.xwayland-global_shortcut-bridge";
+const APP_ID: &str = "org.nuisance.xwayland-global-shortcut-bridge";
 
 async fn run() -> ashpd::Result<()> {
     let app_id = AppID::from_str(APP_ID)?;
@@ -17,19 +19,35 @@ async fn run() -> ashpd::Result<()> {
 
     let session = global_shortcuts.create_session(Default::default()).await?;
 
-    let shortcuts = [NewShortcut::new("test_id", "test_description").preferred_trigger("F")];
+    let shortcuts = [NewShortcut::new("test_id", "test_description").preferred_trigger("F12")];
 
     let request = global_shortcuts
         .bind_shortcuts(&session, &shortcuts, None, Default::default())
         .await?;
 
-    let _ = request.response().inspect_err(|e| eprintln!("{e}"))?;
+    let result = request.response().inspect_err(|e| eprintln!("{e}"))?;
+
+    dbg!(result);
 
     let request = global_shortcuts
         .list_shortcuts(&session, Default::default())
         .await?;
 
-    let _ = request.response().inspect_err(|e| eprintln!("{e}"))?;
+    let result = request.response().inspect_err(|e| eprintln!("{e}"))?;
+
+    dbg!(result);
+
+    let mut stream_activated = global_shortcuts.receive_activated().await?;
+    let mut stream_deactivated = global_shortcuts.receive_deactivated().await?;
+
+    loop {
+        tokio::select! {
+            Some(activated) = stream_activated.next() => { dbg!(activated); },
+            Some(deactivated) = stream_deactivated.next() => { dbg!(deactivated); },
+            _ = tokio::signal::ctrl_c() => break,
+            else => break,
+        };
+    }
 
     Ok(())
 }
