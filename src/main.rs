@@ -27,17 +27,13 @@ async fn run() -> anyhow::Result<()> {
         .bind_shortcuts(&session, &shortcuts, None, Default::default())
         .await?;
 
-    let result = request.response().inspect_err(|e| eprintln!("{e}"))?;
-
-    dbg!(result);
+    let _ = request.response().inspect_err(|e| eprintln!("{e}"))?;
 
     let request = global_shortcuts
         .list_shortcuts(&session, Default::default())
         .await?;
 
-    let result = request.response().inspect_err(|e| eprintln!("{e}"))?;
-
-    dbg!(result);
+    let _ = request.response().inspect_err(|e| eprintln!("{e}"))?;
 
     let xdo = XDo::new(None)?;
 
@@ -46,12 +42,10 @@ async fn run() -> anyhow::Result<()> {
 
     loop {
         tokio::select! {
-            Some(activated) = stream_activated.next() => {
-                dbg!(activated);
+            Some(_) = stream_activated.next() => {
                 let _ = xdo.send_keysequence_down(KEY, 0)?;
             },
-            Some(deactivated) = stream_deactivated.next() => {
-                dbg!(deactivated);
+            Some(_) = stream_deactivated.next() => {
                 let _ = xdo.send_keysequence_up(KEY, 0)?;
             },
             _ = tokio::signal::ctrl_c() => break,
