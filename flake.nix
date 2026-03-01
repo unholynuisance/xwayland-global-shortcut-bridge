@@ -41,6 +41,10 @@
           ...
         }:
         {
+          packages = {
+            xwayland-global-shortcut-bridge = pkgs.callPackage ./package.nix { };
+          };
+
           devenv.shells.default = {
             packages = [
               config.treefmt.build.wrapper
