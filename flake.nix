@@ -44,6 +44,7 @@
           devenv.shells.default = {
             packages = [
               config.treefmt.build.wrapper
+              pkgs.xdotool
             ]
             ++ lib.attrValues config.treefmt.build.programs;
 

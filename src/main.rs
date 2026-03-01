@@ -1,5 +1,6 @@
 use std::str::FromStr as _;
 
+use libxdo::XDo;
 use tokio;
 use tokio_stream::StreamExt as _;
 
@@ -10,8 +11,9 @@ use ashpd::{
 };
 
 const APP_ID: &str = "org.nuisance.xwayland-global-shortcut-bridge";
+const KEY: &str = "F12";
 
-async fn run() -> ashpd::Result<()> {
+async fn run() -> anyhow::Result<()> {
     let app_id = AppID::from_str(APP_ID)?;
     let _ = register_host_app(app_id).await?;
 
@@ -19,7 +21,7 @@ async fn run() -> ashpd::Result<()> {
 
     let session = global_shortcuts.create_session(Default::default()).await?;
 
-    let shortcuts = [NewShortcut::new("test_id", "test_description").preferred_trigger("F12")];
+    let shortcuts = [NewShortcut::new("test_id", "test_description").preferred_trigger(KEY)];
 
     let request = global_shortcuts
         .bind_shortcuts(&session, &shortcuts, None, Default::default())
@@ -37,13 +39,21 @@ async fn run() -> ashpd::Result<()> {
 
     dbg!(result);
 
+    let xdo = XDo::new(None)?;
+
     let mut stream_activated = global_shortcuts.receive_activated().await?;
     let mut stream_deactivated = global_shortcuts.receive_deactivated().await?;
 
     loop {
         tokio::select! {
-            Some(activated) = stream_activated.next() => { dbg!(activated); },
-            Some(deactivated) = stream_deactivated.next() => { dbg!(deactivated); },
+            Some(activated) = stream_activated.next() => {
+                dbg!(activated);
+                let _ = xdo.send_keysequence_down(KEY, 0)?;
+            },
+            Some(deactivated) = stream_deactivated.next() => {
+                dbg!(deactivated);
+                let _ = xdo.send_keysequence_up(KEY, 0)?;
+            },
             _ = tokio::signal::ctrl_c() => break,
             else => break,
         };
