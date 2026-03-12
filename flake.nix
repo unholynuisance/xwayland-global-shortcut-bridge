@@ -62,6 +62,8 @@
                 lsp.package = pkgs.nixd;
               };
             };
+
+            containers = lib.mkForce { };
           };
 
           treefmt.programs = {
