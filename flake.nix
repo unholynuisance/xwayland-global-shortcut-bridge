@@ -25,51 +25,12 @@
     { flake-parts, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
-        inputs.devenv.flakeModule
-        inputs.treefmt-nix.flakeModule
+        ./nix/modules/flake/devenv.nix
+        ./nix/modules/flake/outputs.nix
       ];
 
       systems = [
         "x86_64-linux"
       ];
-
-      perSystem =
-        {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
-        {
-          packages = {
-            xwayland-global-shortcut-bridge = pkgs.callPackage ./package.nix { };
-          };
-
-          devenv.shells.default = {
-            packages = [
-              config.treefmt.build.wrapper
-              pkgs.xdotool
-            ]
-            ++ lib.attrValues config.treefmt.build.programs;
-
-            languages = {
-              rust = {
-                enable = true;
-              };
-
-              nix = {
-                enable = true;
-                lsp.package = pkgs.nixd;
-              };
-            };
-
-            containers = lib.mkForce { };
-          };
-
-          treefmt.programs = {
-            rustfmt.enable = true;
-            nixfmt.enable = true;
-          };
-        };
     };
 }
