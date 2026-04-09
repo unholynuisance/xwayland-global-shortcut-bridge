@@ -2,6 +2,8 @@
   rustPlatform,
   lib,
   xdotool,
+  makeDesktopItem,
+  copyDesktopItems,
 }:
 let
   c = lib.importTOML ./Cargo.toml;
@@ -18,4 +20,14 @@ rustPlatform.buildRustPackage (finalAttrs: {
   };
 
   buildInputs = [ xdotool ];
+
+  nativeBuildInputs = [ copyDesktopItems ];
+
+  desktopItems = [
+    (makeDesktopItem {
+      name = "org.nuisance.xwayland-global-shortcut-bridge";
+      desktopName = "XWayland Global Shortcut Bridge";
+      exec = "xwayland-global-shortcut-bridge";
+    })
+  ];
 })

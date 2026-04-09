@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=XWayland Global Shortcut Bridge
-Exec=/home/unholynuisance/Projects/personal/xwayland-global-shortcut-bridge/target/debug/xwayland-global-shortcut-bridge
-Type=Application
-NoDisplay=false
-X-Desktop-File-Install-Version=5.0
